@@ -1,5 +1,5 @@
 // 1. Cole suas chaves aqui (Essas chaves são públicas, não há problema em ficarem no frontend)
-const SUPABASE_URL = sb_publishable_nDvHBgKJ0taX7cMGWo4_6A_1j_H5xmi'';
+const SUPABASE_URL = 'https://lheprzwjxnckwovdivfb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoZXByendqeG5ja3dvdmRpdmZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjYyODYsImV4cCI6MjA5NTMwMjI4Nn0.AzX8a8NL0x8UQCjipSb9gjkkDQ6JwLqg5RY7_Y5J_eQ';
 
 // 2. Inicializando o cliente do Supabase
