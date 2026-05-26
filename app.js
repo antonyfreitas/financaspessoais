@@ -12,7 +12,8 @@ const S = {
   mes: new Date().getMonth(),
   ano: new Date().getFullYear(),
   txs: [],
-  contas: [], // <-- LINHA NOVA
+  contas: [],
+  metas: [],// <-- LINHA NOVA
   grafCat: null,
   grafMes: null,
   txSel: null,
@@ -184,12 +185,13 @@ function mudarTela(id) {
   const tela = document.getElementById(id);
   tela.classList.remove('hidden'); tela.classList.add('active');
 
-  const mapa = { 'tela-dashboard':'nav-dashboard', 'tela-lancamento':'nav-lancamento', 'tela-historico':'nav-historico' };
+  const mapa = { 'tela-dashboard':'nav-dashboard', 'tela-lancamento':'nav-lancamento', 'tela-historico':'nav-historico', 'tela-metas':'nav-metas' };
   if (mapa[id]) document.getElementById(mapa[id]).classList.add('active');
 
   if (id==='tela-dashboard')  renderDash();
   if (id==='tela-historico')  renderHist();
   if (id==='tela-lancamento' && !document.getElementById('editando-id').value) resetForm();
+  if (id==='tela-metas')      renderMetas(); // <-- Função adicionada
 }
 
 // ============================================================
@@ -785,6 +787,131 @@ function mostrarToast(msg, tipo='ok') {
 }
 
 // ============================================================
+//  METAS E SONHOS
+// ============================================================
+async function carregarMetas() {
+  const { data, error } = await db.from('metas').select('*').order('tipo', {ascending: false});
+  if (!error && data) S.metas = data;
+}
+
+function renderMetas() {
+  const grandes = S.metas.filter(m => m.tipo === 'sonho_grande');
+  const simples = S.metas.filter(m => m.tipo === 'lista_simples');
+
+  // Renderiza as barras de progresso dos sonhos
+  const lg = document.getElementById('lista-metas-grandes');
+  if (grandes.length === 0) lg.innerHTML = '<div class="orc-empty">Nenhum grande alvo definido.</div>';
+  else lg.innerHTML = grandes.map(m => {
+    const pct = m.valor_alvo > 0 ? Math.min((m.valor_guardado / m.valor_alvo) * 100, 100) : 0;
+    return `
+      <div class="meta-card" onclick="adicionarSaldoMeta('${m.id}', '${m.titulo}', ${m.valor_guardado})">
+        <div class="meta-head">
+          <span class="meta-titulo">${m.titulo}</span>
+          <span class="meta-valores">${R$(m.valor_guardado)} / ${R$(m.valor_alvo)}</span>
+        </div>
+        <div class="meta-track">
+          <div class="meta-fill ${pct>=100?'concluido':''}" style="width: ${pct}%"></div>
+        </div>
+        <div style="text-align: right; margin-top: 12px; display: flex; justify-content: space-between;">
+          <span style="font-size: 0.75rem; color: var(--acc);">+ Guardar dinheiro</span>
+          <button class="btn-link" style="font-size:0.75rem; color:var(--red);" onclick="event.stopPropagation(); excluirMeta('${m.id}')">Excluir</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Renderiza a Checklist rápida
+  const ls = document.getElementById('lista-metas-simples');
+  if (simples.length === 0) ls.innerHTML = '<li class="orc-empty" style="text-align:center; padding: 1rem;">Lista vazia.</li>';
+  else ls.innerHTML = simples.map(m => {
+    const done = m.valor_guardado >= 1; // Usamos 1 como indicativo de concluído
+    return `
+      <li>
+        <div class="check-item ${done ? 'done' : ''}" onclick="toggleMetaSimples('${m.id}', ${done})">
+          <div class="check-box">✓</div>
+          <span class="check-texto">${m.titulo}</span>
+        </div>
+        <button class="btn-meta-del" onclick="excluirMeta('${m.id}')">🗑</button>
+      </li>
+    `;
+  }).join('');
+}
+
+// Lógica dos modais e cliques
+function abrirModalMeta(tipo) {
+  document.getElementById('meta-tipo').value = tipo;
+  document.getElementById('meta-nome').value = '';
+  document.getElementById('meta-valor').value = '';
+  
+  if (tipo === 'grande') {
+    document.getElementById('modal-meta-titulo').textContent = 'Sonho Grande';
+    document.getElementById('modal-meta-sub').textContent = 'Ex: Casa nova, Viagem...';
+    document.getElementById('grupo-meta-valor').classList.remove('hidden');
+  } else {
+    document.getElementById('modal-meta-titulo').textContent = 'Coisa Simples';
+    document.getElementById('modal-meta-sub').textContent = 'Ex: Livro, fone de ouvido...';
+    document.getElementById('grupo-meta-valor').classList.add('hidden');
+  }
+  document.getElementById('modal-meta-overlay').classList.remove('hidden');
+}
+
+function fecharModalMeta() { document.getElementById('modal-meta-overlay').classList.add('hidden'); }
+
+async function salvarMeta() {
+  const tipo = document.getElementById('meta-tipo').value;
+  const titulo = document.getElementById('meta-nome').value.trim();
+  const valor_alvo = tipo === 'grande' ? parseFloat(document.getElementById('meta-valor').value) : null;
+  
+  if (!titulo) return mostrarToast('Informe o nome', 'err');
+  if (tipo === 'grande' && (!valor_alvo || valor_alvo <= 0)) return mostrarToast('Informe um valor alvo', 'err');
+  
+  const btn = document.getElementById('btn-salvar-meta');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const { error } = await db.from('metas').insert([{
+    titulo, tipo: tipo === 'grande' ? 'sonho_grande' : 'lista_simples',
+    valor_alvo, valor_guardado: 0
+  }]);
+
+  btn.disabled = false; btn.textContent = 'Salvar';
+  if (error) mostrarToast('Erro ao salvar meta', 'err');
+  else {
+    mostrarToast('Meta adicionada! 🎯', 'ok');
+    fecharModalMeta();
+    await carregarMetas();
+    renderMetas();
+  }
+}
+
+async function excluirMeta(id) {
+  if(!confirm('Tem certeza que deseja excluir?')) return;
+  const { error } = await db.from('metas').delete().eq('id', id);
+  if (!error) { mostrarToast('Excluído', 'ok'); S.metas = S.metas.filter(m => m.id !== id); renderMetas(); }
+}
+
+async function toggleMetaSimples(id, atual) {
+  const novoEstado = atual ? 0 : 1;
+  const { error } = await db.from('metas').update({ valor_guardado: novoEstado }).eq('id', id);
+  if (!error) { const m = S.metas.find(x => x.id === id); if(m) m.valor_guardado = novoEstado; renderMetas(); }
+}
+
+async function adicionarSaldoMeta(id, titulo, saldoAtual) {
+  const val = prompt(`Quanto deseja guardar para "${titulo}"?\n(Saldo atual: ${R$(saldoAtual)})`);
+  if (!val) return;
+  const num = parseFloat(val.replace(',','.'));
+  if (isNaN(num) || num <= 0) return mostrarToast('Valor inválido', 'err');
+  
+  const novoSaldo = saldoAtual + num;
+  const { error } = await db.from('metas').update({ valor_guardado: novoSaldo }).eq('id', id);
+  if (!error) {
+    const m = S.metas.find(x => x.id === id);
+    if(m) m.valor_guardado = novoSaldo;
+    renderMetas();
+    mostrarToast('Dinheiro guardado! 🚀', 'ok');
+  }
+}
+
+// ============================================================
 //  INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
@@ -799,3 +926,4 @@ document.addEventListener('DOMContentLoaded',()=>{
  //initAuth();  //← login desativado por enquanto
 mostrarApp();
 });
+
