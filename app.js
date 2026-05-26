@@ -335,15 +335,137 @@ function renderContasCards(lstTodasTxs) {
   }).join('');
 }
 
-// Ação de clicar no Card do Banco
+// ============================================================
+//  GERENCIAMENTO ESPECÍFICO DE CONTA (STYLE NUBANK)
+// ============================================================
 function filtrarHistoricoPorConta(contaId) {
+  const contaObj = S.contas.find(c => c.id === contaId);
+  if (!contaObj) return;
+
+  // 1. Filtra as transações pertencentes estritamente a esta conta
+  const txsDaConta = S.txs.filter(t => t.conta_id === contaId);
+  const txsMesAtual = filtMes(txsDaConta, S.mes, S.ano);
+
+  // 2. Calcula o saldo real histórico acumulado
+  let saldoCalculado = parseFloat(contaObj.saldo_atual) || 0;
+  S.txs.forEach(t => {
+    if (t.conta_id === contaId) {
+      if (t.tipo === 'receita') saldoCalculado += t.valor;
+      if (t.tipo === 'despesa') saldoCalculado -= t.valor;
+    }
+  });
+
+  // 3. Preenche o cabeçalho do painel
+  document.getElementById('detalhe-conta-inst').textContent = contaObj.instituicao;
+  document.getElementById('detalhe-conta-nome').textContent = contaObj.nome.split('-').pop().trim();
+
+  const corpo = document.getElementById('detalhe-conta-corpo');
+  const isCredito = contaObj.tipo === 'credito';
+
+  if (isCredito) {
+    // Lógica de Cartão de Crédito: Limites e Fatura
+    const limiteDefinido = parseFloat(localStorage.getItem(`limite_cartao_${contaId}`)) || 5000;
+    const faturaAtual = Math.abs(saldoCalculado); // Gastos acumulados negativos viram a fatura ativa
+    const limiteDisponivel = Math.max(0, limiteDefinido - faturaAtual);
+    const pctUso = Math.min((faturaAtual / limiteDefinido) * 100, 100);
+
+    corpo.innerHTML = `
+      <div class="card-progresso-limite">
+        <div class="limite-linhas">
+          <span>Fatura atual: <strong style="color:var(--red);">${R$(faturaAtual)}</strong></span>
+          <span>Disponível: <strong style="color:var(--grn);">${R$(limiteDisponivel)}</strong></span>
+        </div>
+        <div class="barra-limite">
+          <div class="fill-limite" style="width: ${pctUso}%;"></div>
+        </div>
+        <div class="limite-linhas" style="margin-top: 0.6rem; margin-bottom: 0; font-size: 0.75rem;">
+          <span>Limite Total</span>
+          <span>${R$(limiteDefinido)}</span>
+        </div>
+      </div>
+    `;
+
+    // Configura o botão para alterar o limite total do cartão
+    document.getElementById('btn-config-conta').onclick = () => configurarLimiteCartao(contaId, limiteDefinido);
+    document.getElementById('btn-config-conta').textContent = 'Ajustar Limite';
+
+  } else {
+    // Lógica de Conta Corrente / Caixinha / Investimento
+    const entradasMes = txsMesAtual.filter(t => t.tipo === 'receita').reduce((s, t) => s + t.valor, 0);
+    const saidasMes = txsMesAtual.filter(t => t.tipo === 'despesa').reduce((s, t) => s + t.valor, 0);
+
+    corpo.innerHTML = `
+      <div style="text-align: center; padding: 1rem 0; background: var(--depth-0); border-radius: 12px; border: 1px solid var(--brd-lo);">
+        <span style="font-size: 0.75rem; color: var(--txt-dim); text-transform: uppercase;">Saldo Disponível</span>
+        <div style="font-size: 1.6rem; font-weight: 700; color: ${saldoCalculado >= 0 ? 'var(--txt)' : 'var(--red)'}; margin-top: 0.25rem;">
+          ${R$(saldoCalculado)}
+        </div>
+      </div>
+      <div class="fluxo-row">
+        <div class="fluxo-mini-card">
+          <span>↑ Entradas (Mês)</span>
+          <div style="color: var(--grn);">${R$(entradasMes)}</div>
+        </div>
+        <div class="fluxo-mini-card">
+          <span>↓ Saídas (Mês)</span>
+          <div style="color: var(--red);">${R$(saidasMes)}</div>
+        </div>
+      </div>
+    `;
+
+    // Configura o botão para ajustar o saldo base inicial se necessário
+    document.getElementById('btn-config-conta').onclick = () => verHistoricoCompletoDaConta(contaId);
+    document.getElementById('btn-config-conta').textContent = 'Ver tudo no Histórico →';
+  }
+
+  // 4. Renderiza o histórico exclusivo daquela conta no painel
+  const listaTxsContainer = document.getElementById('detalhe-conta-txs');
+  if (txsDaConta.length === 0) {
+    listaTxsContainer.innerHTML = '<li class="tx-empty">Nenhuma transação nesta conta.</li>';
+  } else {
+    // Mostra as últimas 20 transações da conta para manter limpo e rápido
+    listaTxsContainer.innerHTML = txsDaConta.slice(0, 20).map(t => {
+      const info = CATS[t.categoria] || {n: t.categoria, i: '📦'};
+      const sinal = t.tipo === 'receita' ? '+' : '-';
+      return `
+        <li onclick="fecharModalConta(); abrirModal('${t.id}')" style="padding: 0.6rem 1rem;">
+          <div class="tx-ico" style="width:32px; height:32px; font-size:0.9rem;">${info.i}</div>
+          <div class="tx-info">
+            <div class="tx-desc" style="font-size: 0.85rem;">${t.descricao}</div>
+            <div class="tx-meta" style="font-size: 0.7rem;">${dtF(t.data)} · ${info.n}</div>
+          </div>
+          <div class="tx-val ${t.tipo}" style="font-size: 0.85rem;">${sinal}${R$(t.valor)}</div>
+        </li>
+      `;
+    }).join('');
+  }
+
+  // 5. Abre a folha de exibição
+  document.getElementById('modal-conta-overlay').classList.remove('hidden');
+}
+
+function fecharModalConta() {
+  document.getElementById('modal-conta-overlay').classList.add('hidden');
+}
+
+function configurarLimiteCartao(contaId, limiteAtual) {
+  const novoLimite = prompt(`Digite o limite total para este cartão de crédito:`, limiteAtual);
+  if (novoLimite === null) return;
+  const num = parseFloat(novoLimite.replace(',', '.'));
+  if (isNaN(num) || num < 0) {
+    mostrarToast('Valor de limite inválido', 'err');
+    return;
+  }
+  localStorage.setItem(`limite_cartao_${contaId}`, num);
+  mostrarToast('Limite do cartão atualizado! 💳', 'ok');
+  filtrarHistoricoPorConta(contaId); // Atualiza a tela imediatamente
+}
+
+function verHistoricoCompletoDaConta(contaId) {
+  fecharModalConta();
+  limparFiltros();
+  document.getElementById('f-conta').value = contaId;
   mudarTela('tela-historico');
-  document.getElementById('f-mes').value   = '';
-  document.getElementById('f-cat').value   = '';
-  document.getElementById('f-tipo').value  = '';
-  document.getElementById('f-busca').value = '';
-  const fConta = document.getElementById('f-conta');
-  if (fConta) fConta.value = contaId;
   aplicarFiltros(S.txs);
 }
 
