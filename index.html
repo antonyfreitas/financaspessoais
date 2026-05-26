@@ -293,6 +293,28 @@
       </div>
     </div>
   </section>
+
+<div id="modal-conta-overlay" class="modal-overlay hidden" onclick="fecharModalConta()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-drag"></div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+      <div>
+        <span id="detalhe-conta-inst" class="conta-inst">INSTITUIÇÃO</span>
+        <h3 id="detalhe-conta-nome" class="modal-titulo" style="margin-top: 2px;">Nome da Conta</h3>
+      </div>
+      <button id="btn-config-conta" class="btn-ajuste-conta">Ajustar Configurações</button>
+    </div>
+    
+    <div id="detalhe-conta-corpo"></div>
+
+    <div class="mini-historico-titulo">Histórico da Conta</div>
+    <ul id="detalhe-conta-txs" class="lista-tx" style="max-height: 220px; overflow-y: auto; border-radius: 12px; background: var(--depth-0); padding: 0.25rem 0;">
+      </ul>
+
+    <button class="mbtn mbtn-close" onclick="fecharModalConta()" style="margin-top: 1.5rem; width: 100%;">Voltar ao Dashboard</button>
+  </div>
+</div>
   
   <!-- HISTÓRICO -->
   <section id="tela-historico" class="tela hidden">
@@ -348,6 +370,8 @@
 
 </main>
 
+
+  
 <!-- MENU -->
 <nav class="nav-bar">
   <button class="nav-btn active" id="nav-dashboard" onclick="mudarTela('tela-dashboard')">
