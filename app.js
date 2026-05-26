@@ -12,6 +12,7 @@ const S = {
   mes: new Date().getMonth(),
   ano: new Date().getFullYear(),
   txs: [],
+  contas: [], // <-- LINHA NOVA
   grafCat: null,
   grafMes: null,
   txSel: null,
