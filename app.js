@@ -701,6 +701,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('btn-google-login').addEventListener('click', loginGoogle);
   document.getElementById('avatar-wrap').addEventListener('click', ()=>toggleAvatarDD());
   document.getElementById('btn-mes-prev');
- initAuth();  //← login desativado por enquanto
-//mostrarApp();
+ //initAuth();  //← login desativado por enquanto
+mostrarApp();
 });
