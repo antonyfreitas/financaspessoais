@@ -39,6 +39,8 @@ async function carregarContas() {
   }
 }
 
+
+
 // ============================================================
 //  DADOS ESTÁTICOS
 // ============================================================
@@ -918,6 +920,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initTema();
   preencherFMes();
   carregarContas();
+  carregarMetas(); // <-- CHAME AQUI
   document.getElementById('campo-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('btn-tema').addEventListener('click', toggleTema);
   document.getElementById('btn-google-login').addEventListener('click', loginGoogle);
