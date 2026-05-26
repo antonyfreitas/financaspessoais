@@ -21,6 +21,16 @@ const S = {
   tipoAtual: 'despesa',
 };
 
+async function carregarContas() {
+  const { data, error } = await db.from('contas').select('*').order('nome');
+  if (!error && data) {
+    S.contas = data;
+    const opcoes = data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    document.getElementById('conta-desp').innerHTML = opcoes;
+    document.getElementById('conta-rec').innerHTML  = opcoes;
+  }
+}
+
 // ============================================================
 //  DADOS ESTÁTICOS
 // ============================================================
