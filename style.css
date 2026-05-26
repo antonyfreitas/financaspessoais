@@ -319,13 +319,14 @@ ul { list-style: none; }
 }
 .chart-donut-wrap canvas { max-height: 180px; }
 .chart-bar-wrap {
+  position: relative;
   background: var(--depth-2);
   border: 1px solid var(--brd-mid); border-top-color: var(--brd-hi);
   border-radius: var(--r); padding: 20px;
-  height: 200px; display: flex; align-items: center;
+  height: 220px;
   box-shadow: var(--shadow-card);
 }
-.chart-bar-wrap canvas { width: 100% !important; }
+.chart-bar-wrap canvas { width: 100% !important; height: 100% !important; }
 .chart-empty { color: var(--txt-mute); font-size: 13px; position: absolute; }
 
 /* Legenda */
@@ -767,27 +768,118 @@ ul { list-style: none; }
 ::-webkit-scrollbar-thumb { background: var(--brd-mid); border-radius: 4px; }
 
 /* =========================================
-   CHECK-UP DE CONTAS (DASHBOARD)
+   CONTAS — ESTILO LISTA COMPACTO
 ========================================= */
-.contas-scroll-wrap { margin: 1.5rem 0 0.5rem 0; }
-.secao-titulo { font-size: 1rem; color: var(--txt); margin-bottom: 0.75rem; font-weight: 600; padding: 0 1rem; }
-.contas-scroll { 
-  display: flex; gap: 1rem; overflow-x: auto; 
-  padding: 0.5rem 1rem 1rem 1rem; 
-  scroll-snap-type: x mandatory; scrollbar-width: none; 
+.contas-scroll-wrap { margin: 4px 0 20px; }
+
+.secao-titulo {
+  font-size: 10px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--txt-mute);
+  margin-bottom: 10px;
+}
+
+/* Container: lista vertical tipo Nubank */
+.contas-scroll {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 0; overflow: visible;
+  background: var(--depth-2);
+  border: 1px solid var(--brd-mid); border-top-color: var(--brd-hi);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
 }
 .contas-scroll::-webkit-scrollbar { display: none; }
 
-.conta-card { 
-  min-width: 145px; scroll-snap-align: start; padding: 1rem; 
-  border-radius: 1rem; background: var(--bg-card); 
-  box-shadow: var(--shadow-card); border: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 0.25rem; 
-  transition: transform 0.2s ease; cursor: pointer;
+/* Item individual */
+.conta-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--brd-lo);
+  cursor: pointer;
+  transition: background .15s;
+  animation: slideInRight .3s ease both;
 }
-.conta-card:active { box-shadow: var(--shadow-input); transform: scale(0.98); }
-.conta-inst { font-size: 0.7rem; color: var(--txt-mut); text-transform: uppercase; letter-spacing: 0.5px; }
-.conta-nome { font-size: 0.85rem; font-weight: 500; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.conta-saldo { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; margin-top: 0.5rem; }
+.conta-item:last-child { border-bottom: none; }
+.conta-item:first-child { border-radius: var(--r) var(--r) 0 0; }
+.conta-item:last-child:first-child { border-radius: var(--r); }
+.conta-item:hover  { background: var(--depth-3); }
+.conta-item:active { background: var(--depth-4); }
+
+/* Avatar colorido com inicial */
+.conta-avatar {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+  /* Cor definida via JS como --cor; fallback accent */
+  background: rgba(124,111,247,.18);
+  color: var(--cor, var(--acc));
+  border: 1px solid rgba(124,111,247,.25);
+  border-color: color-mix(in srgb, var(--cor, var(--acc)) 30%, transparent);
+  background: color-mix(in srgb, var(--cor, var(--acc)) 18%, transparent);
+}
+
+.conta-info  { flex: 1; min-width: 0; }
+.conta-nome  { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conta-inst  { font-size: 10px; color: var(--txt-mute); text-transform: uppercase; letter-spacing: .4px; margin-top: 1px; }
+
+.conta-saldo {
+  font-family: var(--mono); font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
 .conta-saldo.pos { color: var(--grn); }
 .conta-saldo.neg { color: var(--red); }
+
+.conta-arrow  { color: var(--txt-mute); font-size: 16px; margin-left: 4px; line-height: 1; }
+.contas-empty { color: var(--txt-mute); font-size: 13px; text-align: center; padding: 16px; }
+
+/* ---- ANIMAÇÕES EXTRAS ---- */
+
+/* Slide-in dos itens de conta (stagger via JS animation-delay) */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Pop-in para os kpi cards quando o mês muda */
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(.94); }
+  60%  { transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.kpi-saldo { animation: popIn .35s ease both; }
+.kpis-row .kpi-card:nth-child(1) { animation: popIn .35s .05s ease both; }
+.kpis-row .kpi-card:nth-child(2) { animation: popIn .35s .1s  ease both; }
+
+/* Pulse no badge positivo */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px  rgba(30,201,154,.25); }
+  50%       { box-shadow: 0 0 20px rgba(30,201,154,.55); }
+}
+.kpi-badge.positive { animation: glowPulse 2.5s ease-in-out infinite; }
+
+/* Stagger nos itens da legenda de categorias */
+.legenda-item { animation: fadeUp .25s ease both; }
+.legenda-item:nth-child(1) { animation-delay: .02s; }
+.legenda-item:nth-child(2) { animation-delay: .06s; }
+.legenda-item:nth-child(3) { animation-delay: .10s; }
+.legenda-item:nth-child(4) { animation-delay: .14s; }
+.legenda-item:nth-child(5) { animation-delay: .18s; }
+.legenda-item:nth-child(6) { animation-delay: .22s; }
+.legenda-item:nth-child(7) { animation-delay: .26s; }
+.legenda-item:nth-child(8) { animation-delay: .30s; }
+
+/* Stagger nos itens da lista de transações */
+.lista-tx li { animation: fadeUp .2s ease both; }
+.lista-tx li:nth-child(1) { animation-delay: .01s; }
+.lista-tx li:nth-child(2) { animation-delay: .04s; }
+.lista-tx li:nth-child(3) { animation-delay: .07s; }
+.lista-tx li:nth-child(4) { animation-delay: .10s; }
+.lista-tx li:nth-child(5) { animation-delay: .13s; }
+
+/* FAB pulse idle */
+@keyframes fabPulse {
+  0%, 100% { box-shadow: var(--shadow-btn), 0 0 0 0 rgba(124,111,247,.4); }
+  50%       { box-shadow: var(--shadow-btn), 0 0 0 8px rgba(124,111,247,.0); }
+}
+.nav-fab { animation: fabPulse 3s ease-in-out infinite; }
+
+/* Transição suave no número principal */
+.kpi-valor-main { transition: color .3s; }
