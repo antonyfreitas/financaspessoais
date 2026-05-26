@@ -453,8 +453,9 @@ function abrirModal(id) {
   if (!t) return;
   S.txSel=t;
 
-  const info=CATS[t.categoria]||{n:t.categoria,i:'📦'};
-  const sinal=t.tipo==='receita'?'+':'-';
+  // Puxa o nome da conta nova (ou faz fallback pro método antigo para não sumir dados velhos)
+  const contaObj = S.contas.find(c => c.id === t.conta_id);
+  const nomeConta = contaObj ? contaObj.nome : (MEIOS[t.meio_pagamento] || t.meio_pagamento || '-');
 
   document.getElementById('modal-titulo').textContent=`${info.i} ${t.descricao}`;
   document.getElementById('modal-body').innerHTML=`
@@ -462,7 +463,7 @@ function abrirModal(id) {
     <div class="modal-row"><span>Data</span><span>${dtF(t.data)}</span></div>
     <div class="modal-row"><span>Tipo</span><span style="text-transform:capitalize">${t.tipo}</span></div>
     <div class="modal-row"><span>Categoria</span><span>${info.n}</span></div>
-    <div class="modal-row"><span>Meio</span><span>${MEIOS[t.meio_pagamento]||t.meio_pagamento}</span></div>
+    <div class="modal-row"><span>Conta</span><span style="color:var(--acc)">${nomeConta}</span></div>
     ${t.local_ou_pessoa ? `<div class="modal-row"><span>Local/Pessoa</span><span>${t.local_ou_pessoa}</span></div>` : ''}
     ${t.total_parcelas>1 ? `<div class="modal-row"><span>Parcela</span><span>${t.parcela_atual}/${t.total_parcelas}</span></div>` : ''}
     ${t.recorrente ? `<div class="modal-row"><span>Recorrência</span><span style="color:var(--acc)">↻ Mensal</span></div>` : ''}
@@ -501,11 +502,11 @@ function abrirEdicao(t) {
 
   if (t.tipo==='despesa') {
     document.getElementById('campo-local').value = t.local_ou_pessoa||'';
-    document.getElementById('meio-desp').value   = t.meio_pagamento;
+    if (t.conta_id) document.getElementById('conta-desp').value = t.conta_id;
     selecionarCat('cat-grid-desp','cat-desp', t.categoria);
   } else {
     document.getElementById('campo-fonte').value = t.local_ou_pessoa||'';
-    document.getElementById('meio-rec').value    = t.meio_pagamento;
+    if (t.conta_id) document.getElementById('conta-rec').value = t.conta_id;
     selecionarCat('cat-grid-rec','cat-rec', t.categoria);
   }
 
@@ -605,37 +606,34 @@ document.getElementById('form-transacao').addEventListener('submit', async funct
   const valor    = parseFloat(document.getElementById('campo-valor').value);
   const rec      = document.getElementById('campo-recorrente').checked;
 
-  let localOuPessoa='', meio='', categoria='', nParc=1;
+  let localOuPessoa='', contaId='', categoria='', nParc=1;
 
   if (tipo==='despesa') {
     localOuPessoa = document.getElementById('campo-local').value.trim();
-    meio          = document.getElementById('meio-desp').value;
+    contaId       = document.getElementById('conta-desp').value;
     categoria     = document.getElementById('cat-desp').value;
     nParc         = parseInt(document.getElementById('total-parcelas').value)||1;
   } else {
     localOuPessoa = document.getElementById('campo-fonte').value.trim();
-    meio          = document.getElementById('meio-rec').value;
+    contaId       = document.getElementById('conta-rec').value;
     categoria     = document.getElementById('cat-rec').value;
-    nParc         = 1; // receita nunca tem parcelas
+    nParc         = 1; 
   }
 
   let error;
+  const payload = {
+    tipo, data, descricao:desc, local_ou_pessoa:localOuPessoa,
+    valor, conta_id:contaId, categoria, recorrente:rec
+  };
 
   if (editId) {
-    // EDIÇÃO
-    ({ error } = await db.from('transacoes').update({
-      tipo, data, descricao:desc, local_ou_pessoa:localOuPessoa,
-      valor, meio_pagamento:meio, categoria, recorrente:rec,
-    }).eq('id',editId));
+    ({ error } = await db.from('transacoes').update(payload).eq('id',editId));
   } else {
-    // INSERÇÃO
-    const vParc    = parseFloat((valor/nParc).toFixed(2));
-    const grupoId  = nParc>1 ? crypto.randomUUID() : null;
-    const lista    = Array.from({length:nParc},(_,i)=>{
+    const vParc   = parseFloat((valor/nParc).toFixed(2));
+    const grupoId = nParc>1 ? crypto.randomUUID() : null;
+    const lista   = Array.from({length:nParc},(_,i)=>{
       const dp=new Date(data+'T00:00:00'); dp.setMonth(dp.getMonth()+i);
-      return { tipo, descricao:desc, local_ou_pessoa:localOuPessoa,
-               valor:vParc, data:dp.toISOString().split('T')[0],
-               meio_pagamento:meio, categoria, recorrente:rec,
+      return { ...payload, valor:vParc, data:dp.toISOString().split('T')[0],
                parcela_atual:i+1, total_parcelas:nParc, compra_grupo_id:grupoId };
     });
     ({ error } = await db.from('transacoes').insert(lista));
@@ -648,9 +646,7 @@ document.getElementById('form-transacao').addEventListener('submit', async funct
   if (error) {
     mostrarToast(`Erro: ${error.message}`,'err');
   } else {
-    const msg = editId ? 'Alterações salvas ✓'
-      : (nParc>1 ? `${nParc} parcelas salvas ✓` : 'Transação salva ✓');
-    mostrarToast(msg,'ok');
+    mostrarToast(editId ? 'Alterações salvas ✓' : 'Salvo com sucesso ✓', 'ok');
     invalidCache(); S.txs=[];
     resetForm();
     setTimeout(()=>mudarTela('tela-dashboard'), 700);
@@ -707,6 +703,7 @@ function mostrarToast(msg, tipo='ok') {
 document.addEventListener('DOMContentLoaded',()=>{
   initTema();
   preencherFMes();
+  carregarContas();
   document.getElementById('campo-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('btn-tema').addEventListener('click', toggleTema);
   document.getElementById('btn-google-login').addEventListener('click', loginGoogle);
