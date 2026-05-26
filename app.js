@@ -25,9 +25,16 @@ async function carregarContas() {
   const { data, error } = await db.from('contas').select('*').order('nome');
   if (!error && data) {
     S.contas = data;
+    // Débito/corrente/poupança: aparecem em ambos os selects do form
     const opcoes = data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
     document.getElementById('conta-desp').innerHTML = opcoes;
     document.getElementById('conta-rec').innerHTML  = opcoes;
+    // Filtro do histórico: todas as contas
+    const fConta = document.getElementById('f-conta');
+    if (fConta) {
+      fConta.innerHTML = '<option value="">Todas as contas</option>' +
+        data.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    }
   }
 }
 
@@ -71,6 +78,20 @@ function filtMes(lst, m, a) {
     const d = new Date(t.data+'T00:00:00');
     return d.getMonth()===m && d.getFullYear()===a;
   });
+}
+
+// ---- Animação count-up ----
+function animarNumero(el, valor) {
+  const duration = 650;
+  const start = performance.now();
+  const fmt = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+  const tick = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(valor * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 // ============================================================
@@ -248,10 +269,10 @@ async function renderDash() {
   const desp = doMes.filter(t=>t.tipo==='despesa').reduce((s,t)=>s+t.valor,0);
   const saldo= rec-desp;
 
-  document.getElementById('dash-saldo').textContent = R$(saldo);
-  document.getElementById('dash-rec').textContent   = R$(rec);
-  document.getElementById('dash-desp').textContent  = R$(desp);
   document.getElementById('label-mes').textContent  = mlb(S.mes, S.ano);
+  animarNumero(document.getElementById('dash-saldo'), saldo);
+  animarNumero(document.getElementById('dash-rec'),   rec);
+  animarNumero(document.getElementById('dash-desp'),  desp);
 
   const badge = document.getElementById('dash-saldo-badge');
   badge.textContent = (saldo>=0?'+':'')+R$(saldo);
@@ -266,17 +287,17 @@ async function renderDash() {
 }
 
 // ---- Cards de Contas (Check-up) ----
+const CONTA_CORES = ['#7c6ff7','#1ec99a','#f0566e','#f0a030','#38bdf8','#a78bfa','#fb923c','#4ade80'];
+
 function renderContasCards(lstTodasTxs) {
   const container = document.getElementById('lista-contas-dash');
   if (!container) return;
 
-  // Clona as contas para não sujar o estado original e zera o saldo calculado
   const saldos = {};
   S.contas.forEach(c => {
-    saldos[c.id] = { ...c, saldo_calculado: parseFloat(c.saldo_atual) || 0 };
+    saldos[c.id] = { ...c, saldo_calculado: parseFloat(c.saldo_inicial || c.saldo_atual) || 0 };
   });
 
-  // Calcula o saldo somando todas as transações da história daquela conta
   lstTodasTxs.forEach(t => {
     if (t.conta_id && saldos[t.conta_id]) {
       if (t.tipo === 'receita') saldos[t.conta_id].saldo_calculado += t.valor;
@@ -284,30 +305,42 @@ function renderContasCards(lstTodasTxs) {
     }
   });
 
-  // Filtra para esconder contas zeradas que não são carteiras ativas
-  const contasAtivas = Object.values(saldos).filter(c => c.saldo_calculado !== 0 || c.tipo !== 'desabilitada');
+  // Exclui contas de crédito — crédito tem fatura, não saldo
+  const contasAtivas = Object.values(saldos).filter(c => {
+    const tipo = (c.tipo || '').toLowerCase();
+    const nome = (c.nome || '').toLowerCase();
+    if (tipo === 'credito' || nome.includes('crédito') || nome.includes('credito')) return false;
+    return true;
+  });
 
-  container.innerHTML = contasAtivas.map(c => `
-    <div class="conta-card card" onclick="filtrarHistoricoPorConta('${c.id}')">
-      <div class="conta-inst">${c.instituicao}</div>
-      <div class="conta-nome">${c.nome.split('-').pop().trim()}</div>
-      <div class="conta-saldo ${c.saldo_calculado >= 0 ? 'pos' : 'neg'}">
-        ${R$(c.saldo_calculado)}
+  if (!contasAtivas.length) { container.innerHTML = '<p class="contas-empty">Nenhuma conta cadastrada</p>'; return; }
+
+  container.innerHTML = contasAtivas.map((c, i) => {
+    const cor = CONTA_CORES[i % CONTA_CORES.length];
+    const inicial = (c.nome || c.instituicao || '?')[0].toUpperCase();
+    const inst = c.instituicao || '';
+    return `<div class="conta-item" style="animation-delay:${i * 55}ms" onclick="filtrarHistoricoPorConta('${c.id}')">
+      <div class="conta-avatar" style="--cor:${cor}">${inicial}</div>
+      <div class="conta-info">
+        <div class="conta-nome">${c.nome}</div>
+        ${inst ? `<div class="conta-inst">${inst}</div>` : ''}
       </div>
-    </div>
-  `).join('');
+      <div class="conta-saldo ${c.saldo_calculado >= 0 ? 'pos' : 'neg'}">${R$(c.saldo_calculado)}</div>
+      <span class="conta-arrow">›</span>
+    </div>`;
+  }).join('');
 }
 
 // Ação de clicar no Card do Banco
 function filtrarHistoricoPorConta(contaId) {
   mudarTela('tela-historico');
-  document.getElementById('f-mes').value = ''; // Remove filtro de mês para ver tudo da conta
-  // Vamos usar o campo de busca temporariamente para filtrar pela conta
-  const contaObj = S.contas.find(c => c.id === contaId);
-  if (contaObj) {
-    document.getElementById('f-busca').value = contaObj.nome;
-    aplicarFiltros(S.txs);
-  }
+  document.getElementById('f-mes').value   = '';
+  document.getElementById('f-cat').value   = '';
+  document.getElementById('f-tipo').value  = '';
+  document.getElementById('f-busca').value = '';
+  const fConta = document.getElementById('f-conta');
+  if (fConta) fConta.value = contaId;
+  aplicarFiltros(S.txs);
 }
 
 // ---- Fatura crédito ----
@@ -446,12 +479,14 @@ function aplicarFiltros(lst) {
   const mes   = document.getElementById('f-mes').value;
   const cat   = document.getElementById('f-cat').value;
   const tipo  = document.getElementById('f-tipo').value;
+  const conta = document.getElementById('f-conta')?.value || '';
   const busca = document.getElementById('f-busca').value.toLowerCase().trim();
 
   let f=lst;
   if(mes){ const [a,m]=mes.split('-').map(Number); f=f.filter(t=>{ const d=new Date(t.data+'T00:00:00'); return d.getFullYear()===a&&d.getMonth()===m-1; }); }
   if(cat)   f=f.filter(t=>t.categoria===cat);
   if(tipo)  f=f.filter(t=>t.tipo===tipo);
+  if(conta) f=f.filter(t=>t.conta_id===conta);
   if(busca) f=f.filter(t=>t.descricao?.toLowerCase().includes(busca)||t.local_ou_pessoa?.toLowerCase().includes(busca));
 
   document.getElementById('f-count').textContent=`${f.length} transaç${f.length!==1?'ões':'ão'} encontrada${f.length!==1?'s':''}`;
@@ -721,10 +756,22 @@ document.getElementById('btn-mes-next').addEventListener('click',()=>{
 // ============================================================
 //  FILTROS HISTÓRICO
 // ============================================================
-['f-mes','f-cat','f-tipo'].forEach(id=>{
-  document.getElementById(id).addEventListener('change',()=>aplicarFiltros(S.txs));
+['f-mes','f-cat','f-tipo','f-conta'].forEach(id=>{
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change',()=>aplicarFiltros(S.txs));
 });
 document.getElementById('f-busca').addEventListener('input',()=>aplicarFiltros(S.txs));
+
+// Navegação via menu → reseta filtros
+function irParaHistorico() {
+  document.getElementById('f-mes').value   = '';
+  document.getElementById('f-cat').value   = '';
+  document.getElementById('f-tipo').value  = '';
+  document.getElementById('f-busca').value = '';
+  const fConta = document.getElementById('f-conta');
+  if (fConta) fConta.value = '';
+  mudarTela('tela-historico');
+}
 
 // ============================================================
 //  TOAST
