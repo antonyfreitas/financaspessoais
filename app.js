@@ -257,11 +257,57 @@ async function renderDash() {
   badge.textContent = (saldo>=0?'+':'')+R$(saldo);
   badge.className   = 'kpi-badge '+(saldo>=0?'positive':'negative');
 
+  renderContasCards(lst); // <--- Chamada nova!
   renderFatura(doMes);
   renderGrafCat(doMes);
   renderOrc(doMes);
   renderGrafMes(lst);
   renderListaTx('lista-dash', doMes.slice(0,5));
+}
+
+// ---- Cards de Contas (Check-up) ----
+function renderContasCards(lstTodasTxs) {
+  const container = document.getElementById('lista-contas-dash');
+  if (!container) return;
+
+  // Clona as contas para não sujar o estado original e zera o saldo calculado
+  const saldos = {};
+  S.contas.forEach(c => {
+    saldos[c.id] = { ...c, saldo_calculado: parseFloat(c.saldo_atual) || 0 };
+  });
+
+  // Calcula o saldo somando todas as transações da história daquela conta
+  lstTodasTxs.forEach(t => {
+    if (t.conta_id && saldos[t.conta_id]) {
+      if (t.tipo === 'receita') saldos[t.conta_id].saldo_calculado += t.valor;
+      if (t.tipo === 'despesa') saldos[t.conta_id].saldo_calculado -= t.valor;
+    }
+  });
+
+  // Filtra para esconder contas zeradas que não são carteiras ativas
+  const contasAtivas = Object.values(saldos).filter(c => c.saldo_calculado !== 0 || c.tipo !== 'desabilitada');
+
+  container.innerHTML = contasAtivas.map(c => `
+    <div class="conta-card card" onclick="filtrarHistoricoPorConta('${c.id}')">
+      <div class="conta-inst">${c.instituicao}</div>
+      <div class="conta-nome">${c.nome.split('-').pop().trim()}</div>
+      <div class="conta-saldo ${c.saldo_calculado >= 0 ? 'pos' : 'neg'}">
+        ${R$(c.saldo_calculado)}
+      </div>
+    </div>
+  `).join('');
+}
+
+// Ação de clicar no Card do Banco
+function filtrarHistoricoPorConta(contaId) {
+  mudarTela('tela-historico');
+  document.getElementById('f-mes').value = ''; // Remove filtro de mês para ver tudo da conta
+  // Vamos usar o campo de busca temporariamente para filtrar pela conta
+  const contaObj = S.contas.find(c => c.id === contaId);
+  if (contaObj) {
+    document.getElementById('f-busca').value = contaObj.nome;
+    aplicarFiltros(S.txs);
+  }
 }
 
 // ---- Fatura crédito ----
@@ -298,7 +344,19 @@ function renderGrafCat(lst) {
     data: { labels, datasets:[{ data:vals, backgroundColor:CORES.slice(0,labels.length), borderWidth:0, hoverOffset:8 }] },
     options: {
       cutout:'66%', responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label:c=>` ${R$(c.raw)} (${((c.raw/tot)*100).toFixed(0)}%)` } } }
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label:c=>` ${R$(c.raw)} (${((c.raw/tot)*100).toFixed(0)}%)` } } },
+      // INÍCIO DA MÁGICA DO CLIQUE (AGORA NO LUGAR CERTO)
+      onClick: (e, activeElements) => {
+        if (activeElements.length > 0) {
+          const index = activeElements[0].index;
+          const catClicada = labels[index];
+          mudarTela('tela-historico');
+          document.getElementById('f-mes').value = `${S.ano}-${String(S.mes+1).padStart(2,'0')}`;
+          document.getElementById('f-cat').value = catClicada;
+          aplicarFiltros(S.txs);
+        }
+      }
+      // FIM DA MÁGICA
     }
   });
 
@@ -314,30 +372,6 @@ function renderGrafCat(lst) {
         <div class="legenda-pct">${((vals[i]/tot)*100).toFixed(0)}%</div>
       </div>
     </li>`;
-  }).join('');
-}
-
-// ---- Orçamentos ----
-function renderOrc(doMes) {
-  const el = document.getElementById('orc-lista');
-  const cats = Object.keys(S.orc);
-  if (!cats.length) { el.innerHTML='<div class="orc-empty">Nenhum orçamento. Toque em "Editar".</div>'; return; }
-
-  const gastos={};
-  doMes.filter(t=>t.tipo==='despesa').forEach(t=>{ gastos[t.categoria]=(gastos[t.categoria]||0)+t.valor; });
-
-  el.innerHTML = cats.map(cat=>{
-    const info=CATS[cat]||{n:cat,i:'📦'};
-    const lim=S.orc[cat], gasto=gastos[cat]||0;
-    const pct=Math.min((gasto/lim)*100,100);
-    const cls=pct>=100?'over':pct>=75?'warn':'';
-    return `<div class="orc-item">
-      <div class="orc-head">
-        <span class="orc-nome">${info.i} ${info.n}</span>
-        <span class="orc-vals">${R$(gasto)} / ${R$(lim)}</span>
-      </div>
-      <div class="orc-track"><div class="orc-fill ${cls}" style="width:${pct}%"></div></div>
-    </div>`;
   }).join('');
 }
 
@@ -453,6 +487,10 @@ function abrirModal(id) {
   if (!t) return;
   S.txSel=t;
 
+  // Recria as variáveis apagadas
+  const info = CATS[t.categoria] || {n: t.categoria, i: '📦'};
+  const sinal = t.tipo === 'receita' ? '+' : '-';
+
   // Puxa o nome da conta nova (ou faz fallback pro método antigo para não sumir dados velhos)
   const contaObj = S.contas.find(c => c.id === t.conta_id);
   const nomeConta = contaObj ? contaObj.nome : (MEIOS[t.meio_pagamento] || t.meio_pagamento || '-');
@@ -473,6 +511,8 @@ function abrirModal(id) {
   document.getElementById('mbtn-editar').onclick =()=>abrirEdicao(t);
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
+
+
 function fecharModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
 
 async function excluir(id) {
