@@ -312,6 +312,9 @@
           <option value="despesa">↓ Despesa</option>
           <option value="receita">↑ Receita</option>
         </select>
+        <select id="f-conta" class="input-base input-sm">
+          <option value="">Todas as contas</option>
+        </select>
       </div>
       <p id="f-count" class="f-count"></p>
     </div>
@@ -329,7 +332,7 @@
   <button class="nav-btn" id="nav-lancamento" onclick="mudarTela('tela-lancamento')">
     <span class="nav-fab">+</span>
   </button>
-  <button class="nav-btn" id="nav-historico" onclick="mudarTela('tela-historico')">
+  <button class="nav-btn" id="nav-historico" onclick="irParaHistorico()">
     <span class="nav-ico">≡</span><span class="nav-lbl">Histórico</span>
   </button>
 </nav>
