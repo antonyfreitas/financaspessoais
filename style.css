@@ -765,3 +765,29 @@ ul { list-style: none; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--brd-mid); border-radius: 4px; }
+
+/* =========================================
+   CHECK-UP DE CONTAS (DASHBOARD)
+========================================= */
+.contas-scroll-wrap { margin: 1.5rem 0 0.5rem 0; }
+.secao-titulo { font-size: 1rem; color: var(--txt); margin-bottom: 0.75rem; font-weight: 600; padding: 0 1rem; }
+.contas-scroll { 
+  display: flex; gap: 1rem; overflow-x: auto; 
+  padding: 0.5rem 1rem 1rem 1rem; 
+  scroll-snap-type: x mandatory; scrollbar-width: none; 
+}
+.contas-scroll::-webkit-scrollbar { display: none; }
+
+.conta-card { 
+  min-width: 145px; scroll-snap-align: start; padding: 1rem; 
+  border-radius: 1rem; background: var(--bg-card); 
+  box-shadow: var(--shadow-card); border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 0.25rem; 
+  transition: transform 0.2s ease; cursor: pointer;
+}
+.conta-card:active { box-shadow: var(--shadow-input); transform: scale(0.98); }
+.conta-inst { font-size: 0.7rem; color: var(--txt-mut); text-transform: uppercase; letter-spacing: 0.5px; }
+.conta-nome { font-size: 0.85rem; font-weight: 500; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conta-saldo { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; margin-top: 0.5rem; }
+.conta-saldo.pos { color: var(--grn); }
+.conta-saldo.neg { color: var(--red); }
