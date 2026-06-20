@@ -1,0 +1,17 @@
+.toast {
+  position: fixed;
+  bottom: calc(var(--nav) + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--depth-3);
+  border-radius: 24px;
+  padding: 11px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 999;
+  animation: toastIn .3s ease;
+}
+.ok  { color: var(--grn); }
+.err { color: var(--red); }
+.inf { color: var(--acc); }

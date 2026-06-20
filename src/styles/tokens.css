@@ -1,0 +1,68 @@
+:root {
+  /* Fundo geral — mais flat, menos camadas de profundidade */
+  --depth-0:  #050608;
+  --depth-1:  #0b0c10;
+  --depth-2:  #14151a;   /* cards padrão (cinza-chumbo) */
+  --depth-3:  #1c1d24;   /* hover/elevado */
+  --depth-4:  #24252e;
+
+  /* Card de destaque (preto puro, tipo o card "Orçamento Mensal" do print) */
+  --card-dark: #000000;
+  --card-dark-2: #0a0a0a;
+
+  --brd-lo:   rgba(255,255,255,0.06);
+  --brd-mid:  rgba(255,255,255,0.10);
+  --brd-hi:   rgba(255,255,255,0.14);
+  --brd-acc:  rgba(124,111,247,0.5);
+
+  --txt:      #f2f3f7;
+  --txt-dim:  #8a91ab;
+  --txt-mute: #52586e;
+
+  --acc:      #7c6ff7;
+  --acc-lo:   rgba(124,111,247,0.16);
+  --acc-glow: 0 0 16px rgba(124,111,247,0.3);
+
+  --grn:      #1ec99a;
+  --grn-lo:   rgba(30,201,154,0.14);
+  --grn-glow: 0 0 14px rgba(30,201,154,0.25);
+  --red:      #f0566e;
+  --red-lo:   rgba(240,86,110,0.14);
+  --ylw:      #f0a030;
+  --ylw-lo:   rgba(240,160,48,0.14);
+
+  --font: 'Sora', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+
+  /* Raios maiores e mais consistentes, estilo iOS card */
+  --r:    22px;
+  --r-sm: 16px;
+  --r-xs: 12px;
+  --nav:  72px;
+
+  /* Sombras flat — sutis, sem inset profundo */
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 4px 16px rgba(0,0,0,0.35);
+  --shadow-input: inset 0 0 0 1px var(--brd-lo);
+  --shadow-btn: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-btn-press: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-nav: 0 -1px 0 rgba(255,255,255,0.04);
+}
+
+[data-tema="light"] {
+  --depth-0:  #eef0f5;
+  --depth-1:  #f4f5f9;
+  --depth-2:  #ffffff;
+  --depth-3:  #f7f8fc;
+  --depth-4:  #eceefb;
+  --card-dark: #14151a;
+  --card-dark-2: #1c1d24;
+  --brd-lo:   rgba(0,0,0,0.05);
+  --brd-mid:  rgba(0,0,0,0.08);
+  --brd-hi:   rgba(0,0,0,0.12);
+  --txt:      #14151a;
+  --txt-dim:  #6b728e;
+  --txt-mute: #a0a8c0;
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.6) inset, 0 4px 14px rgba(0,0,0,0.08);
+  --shadow-btn: 0 2px 8px rgba(0,0,0,0.1);
+  --shadow-nav: 0 -1px 0 rgba(0,0,0,0.05);
+}

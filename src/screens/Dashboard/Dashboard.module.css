@@ -1,0 +1,239 @@
+.tela {
+  padding: 0 18px;
+  padding-bottom: calc(var(--nav) + 20px);
+  animation: fadeUp .2s ease;
+}
+
+/* Header tipo "Bom dia / Cai" */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 26px 0 18px;
+}
+.saudacao {
+  font-size: 13px;
+  color: var(--txt-dim);
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+.titulo { font-size: 30px; font-weight: 700; letter-spacing: -.6px; }
+
+.headerActions { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.temaBtn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--depth-2);
+  color: var(--txt-dim); font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mesPill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--depth-2);
+  border-radius: 20px; padding: 8px 14px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+}
+.mesPill .chev { font-size: 10px; color: var(--txt-mute); }
+
+/* Mês nav (segunda linha, navegação entre meses) */
+.mesNav {
+  display: flex; align-items: center; justify-content: center;
+  gap: 18px; margin-bottom: 16px;
+}
+.arrow {
+  background: none; border: none; color: var(--txt-dim);
+  font-size: 22px; line-height: 1; padding: 4px 10px;
+  cursor: pointer;
+}
+.arrow:hover { color: var(--acc); }
+.mesLabel { font-size: 14px; font-weight: 600; min-width: 76px; text-align: center; color: var(--txt-dim); }
+
+/* CARD PRETO — Orçamento mensal, estilo print */
+.cardDestaque {
+  background: var(--card-dark);
+  border-radius: var(--r);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  animation: popIn .3s ease both;
+}
+.cardDestaqueTop {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.cardLabel {
+  font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500;
+}
+.cardLabelPill {
+  font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 700;
+  letter-spacing: .5px;
+}
+.cardValorMain {
+  font-family: var(--font);
+  font-size: 38px; font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 14px;
+}
+.cardTrack {
+  height: 5px; background: rgba(255,255,255,0.12);
+  border-radius: 3px; overflow: hidden; margin-bottom: 16px;
+}
+.cardFill { height: 100%; border-radius: 3px; background: var(--grn); transition: width .5s ease; }
+.cardFill.over { background: var(--red); }
+.cardFooterRow { display: flex; justify-content: space-between; }
+.cardFooterItem { display: flex; flex-direction: column; gap: 3px; }
+.cardFooterLbl { font-size: 11px; color: rgba(255,255,255,0.4); }
+.cardFooterVal { font-family: var(--mono); font-size: 15px; font-weight: 700; color: #fff; }
+.cardFooterVal.right { text-align: right; }
+
+/* KPI row — receitas/despesas */
+.kpiRow { display: flex; gap: 10px; margin-bottom: 14px; }
+.kpiCard {
+  flex: 1;
+  background: var(--depth-2);
+  border-radius: var(--r-sm); padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+}
+.kpiLabel {
+  display: block; font-size: 11px; font-weight: 600;
+  color: var(--txt-mute); margin-bottom: 8px;
+}
+.kpiSm { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.kpiRec .kpiSm { color: var(--grn); }
+.kpiDesp .kpiSm { color: var(--red); }
+
+/* Assinaturas KPI pill */
+.assKpi {
+  width: 100%;
+  background: var(--depth-2);
+  border-radius: var(--r-sm);
+  padding: 16px 18px;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+}
+.assKpiRow { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; }
+.assKpiVal { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--acc); }
+.assKpiVal small { font-size: 12px; font-weight: 400; color: var(--txt-dim); margin-left: 2px; }
+.assKpiCount { font-size: 12px; color: var(--acc); font-weight: 600; }
+
+/* Seções */
+.section { margin-bottom: 26px; }
+.sectionHead {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 12px;
+}
+.sectionHead h3 { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+.hint { font-size: 12px; color: var(--txt-mute); }
+
+/* Contas — lista flat com avatar quadrado */
+.contasList {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.contaItem {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--depth-2);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-card);
+  animation: slideInRight .25s ease both;
+  cursor: pointer;
+}
+.contaAvatar {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700;
+  background: var(--cor, var(--acc));
+  color: #fff;
+}
+.contaInfo { flex: 1; min-width: 0; }
+.contaNome { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contaInst { font-size: 11px; color: var(--txt-mute); margin-top: 1px; }
+.contaSaldo { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+.pos { color: var(--grn); }
+.neg { color: var(--red); }
+
+/* Gráficos */
+.chartDonut {
+  background: var(--depth-2);
+  border-radius: var(--r);
+  padding: 20px; margin-bottom: 12px;
+  box-shadow: var(--shadow-card);
+}
+.chartBar {
+  background: var(--depth-2);
+  border-radius: var(--r);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+.chartEmpty {
+  background: var(--depth-2);
+  border-radius: var(--r);
+  padding: 32px;
+  text-align: center;
+  color: var(--txt-mute);
+  font-size: 13px;
+}
+.legenda { display: flex; flex-direction: column; gap: 6px; }
+.legendaItem {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--depth-2);
+  border-radius: var(--r-xs); padding: 11px 14px;
+  animation: fadeUp .2s ease both;
+}
+.legendaL { display: flex; align-items: center; gap: 10px; }
+.legendaDot { width: 9px; height: 9px; border-radius: 50%; }
+.legendaR { text-align: right; }
+.legendaVal { font-size: 13px; font-weight: 600; font-family: var(--mono); }
+.legendaPct { font-size: 11px; color: var(--txt-mute); }
+
+/* Orçamentos — anel circular tipo print */
+.orcGrid { display: flex; flex-direction: column; gap: 8px; }
+.orcItem {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--depth-2);
+  border-radius: var(--r-sm); padding: 12px 16px;
+  box-shadow: var(--shadow-card);
+}
+.orcRing {
+  position: relative;
+  width: 44px; height: 44px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.orcRingPct { font-size: 11px; font-weight: 700; }
+.orcInfo { flex: 1; }
+.orcNome { font-size: 13px; font-weight: 600; }
+.orcVals { font-size: 12px; color: var(--txt-mute); font-family: var(--mono); margin-top: 1px; }
+.orcVals strong { color: var(--txt); font-weight: 700; }
+
+/* Lista tx — flat */
+.listaTx { display: flex; flex-direction: column; gap: 8px; }
+.listaTx li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  background: var(--depth-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background .15s;
+}
+.listaTx li:hover { background: var(--depth-3); }
+.txEmpty { cursor: default !important; justify-content: center !important; }
+.txEmpty span { color: var(--txt-mute); font-size: 13px; }
+.txIco {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  background: var(--depth-4);
+  flex-shrink: 0;
+}
+.txInfo { flex: 1; min-width: 0; }
+.txDesc { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txMeta { font-size: 11.5px; color: var(--txt-mute); margin-top: 2px; }
+.txVal { font-family: var(--mono); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.receita { color: var(--grn); }
+.despesa { color: var(--red); }

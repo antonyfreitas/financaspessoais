@@ -1,0 +1,82 @@
+.tela { padding: 0 18px; padding-bottom: calc(var(--nav) + 20px); animation: fadeUp .2s ease; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; padding: 26px 0 18px; }
+.titulo { font-size: 26px; font-weight: 700; letter-spacing: -.4px; }
+.sub { font-size: 12px; color: var(--txt-dim); margin-top: 2px; }
+.addBtn {
+  background: var(--acc); color: #fff;
+  border-radius: 20px; padding: 9px 16px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; margin-top: 4px;
+}
+
+.resumo {
+  background: var(--card-dark);
+  border-radius: var(--r); padding: 18px 20px;
+  margin-bottom: 22px;
+  display: flex; align-items: center; gap: 0;
+}
+.resumoItem { flex: 1; text-align: center; }
+.resumoLabel { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+.resumoVal { font-family: var(--mono); font-size: 21px; font-weight: 700; color: #fff; }
+.resumoValSm { font-family: var(--mono); font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.65); }
+.resumoCount { font-family: var(--mono); font-size: 21px; font-weight: 700; color: var(--grn); }
+.resumoDivider { width: 1px; height: 36px; background: rgba(255,255,255,0.12); }
+
+.empty {
+  text-align: center; padding: 44px 20px;
+  background: var(--depth-2);
+  border-radius: var(--r);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.empty span { font-size: 34px; }
+.empty p { color: var(--txt-mute); font-size: 14px; }
+.emptyBtn { background: var(--acc-lo); color: var(--acc); border-radius: 20px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+.lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.section { margin-bottom: 24px; }
+.sectionHead { margin-bottom: 12px; }
+.sectionHead h3 { font-size: 14px; font-weight: 600; color: var(--txt-dim); }
+
+.assCard {
+  background: var(--depth-2);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  animation: slideInRight .25s ease both;
+}
+.assInativa { opacity: .5; }
+.assLeft { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background .15s; }
+.assLeft:hover { background: var(--depth-3); }
+.assAvatar {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  background: var(--cor, var(--acc));
+}
+.assInfo { flex: 1; min-width: 0; }
+.assNome { font-size: 14px; font-weight: 600; }
+.assPerio { font-size: 11px; color: var(--txt-mute); margin-top: 2px; }
+.assValores { text-align: right; }
+.assValPrincipal { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--red); }
+.assValSec { font-family: var(--mono); font-size: 10px; color: var(--txt-mute); margin-top: 2px; }
+
+.assAcoes { display: flex; border-top: 1px solid var(--brd-lo); animation: fadeUp .15s ease; }
+.acaoBtn {
+  flex: 1; padding: 11px 6px;
+  font-size: 12px; font-weight: 600; color: var(--txt-dim);
+  background: none; border: none; border-right: 1px solid var(--brd-lo);
+  cursor: pointer; transition: color .15s, background .15s;
+}
+.acaoBtn:last-child { border-right: none; }
+.acaoBtn:hover { color: var(--acc); background: var(--acc-lo); }
+.acaoDel:hover { color: var(--red); background: var(--red-lo); }
+
+.formGrupo { margin-bottom: 16px; }
+.formRow { display: flex; gap: 10px; }
+.formLbl { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--txt-mute); margin-bottom: 8px; }
+.coresPicker { display: flex; flex-wrap: wrap; gap: 8px; }
+.corBtn {
+  width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+  border: 2px solid transparent; transition: transform .15s, border-color .15s;
+}
+.corBtn:hover { transform: scale(1.1); }
+.corSel { border-color: #fff; transform: scale(1.15); }

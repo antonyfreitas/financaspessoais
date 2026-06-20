@@ -1,0 +1,12 @@
+.shell {
+  height: 100dvh;
+  background: var(--depth-0);
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.main {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
