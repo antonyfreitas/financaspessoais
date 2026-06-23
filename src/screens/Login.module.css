@@ -1,0 +1,46 @@
+.tela {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg, #07080c);
+  padding: 24px;
+}
+
+.card {
+  background: var(--depth-2, #14151c);
+  border-radius: 22px;
+  padding: 40px 32px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+
+.titulo {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--txt, #fff);
+  margin-bottom: 4px;
+}
+
+.sub {
+  color: var(--txt-mute, #888);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.btnGoogle {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #fff;
+  color: #1f1f1f;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.btnGoogle:hover {
+  opacity: 0.9;
+}
